@@ -686,7 +686,20 @@ static struct i2c_board_info __initdata snd_wm8804_i2c_devices[] = {
                 I2C_BOARD_INFO("wm8804", 0x3b)
         },
 };
+#endif
 
+#if defined(CONFIG_SND_BCM2708_SOC_NVR101_DAC) || defined(CONFIG_SND_BCM2708_SOC_NVR101_DAC_MODULE)
+static struct platform_device snd_nvr101_dac_device = {
+	.name = "snd-nvr101-dac",
+	.id = 0,
+	.num_resources = 0,
+};
+
+static struct i2c_board_info __initdata nvr101_i2c_board_info[] = {
+	{
+		I2C_BOARD_INFO("pcm1796", 0x4C),
+	},
+};
 #endif
 
 #if defined(CONFIG_SND_BCM2708_SOC_HIFIBERRY_AMP) || defined(CONFIG_SND_BCM2708_SOC_HIFIBERRY_AMP_MODULE)
@@ -920,6 +933,11 @@ void __init bcm2708_init(void)
 #if defined(CONFIG_SND_BCM2708_SOC_HIFIBERRY_AMP) || defined(CONFIG_SND_BCM2708_SOC_HIFIBERRY_AMP_MODULE)
         bcm_register_device_dt(&snd_hifiberry_amp_device);
         i2c_register_board_info_dt(1, snd_tas5713_i2c_devices, ARRAY_SIZE(snd_tas5713_i2c_devices));
+#endif
+
+#if defined(CONFIG_SND_BCM2708_SOC_NVR101_DAC) || defined(CONFIG_SND_BCM2708_SOC_NVR101_DAC_MODULE)
+	bcm_register_device(&snd_nvr101_dac_device);
+	i2c_register_board_info(1, nvr101_i2c_board_info, ARRAY_SIZE(nvr101_i2c_board_info));
 #endif
 
 #if defined(CONFIG_SND_BCM2708_SOC_RPI_DAC) || defined(CONFIG_SND_BCM2708_SOC_RPI_DAC_MODULE)
