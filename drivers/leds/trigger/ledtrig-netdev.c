@@ -267,9 +267,15 @@ static int netdev_trig_notify(struct notifier_block *nb,
 			      void *dv)
 {
 	struct net_device *dev = dv;
-	struct led_netdev_data *trigger_data = container_of(nb, struct led_netdev_data, notifier);
+	struct led_netdev_data *trigger_data;
 
-	if (evt != NETDEV_UP && evt != NETDEV_DOWN && evt != NETDEV_CHANGE && evt != NETDEV_REGISTER && evt != NETDEV_UNREGISTER)
+	if (!dv || ! nb)
+		return NOTIFY_DONE;
+
+	trigger_data = container_of(nb, struct led_netdev_data, notifier);
+	if (!trigger_data)
+		return NOTIFY_DONE;
+
 		return NOTIFY_DONE;
 
 	write_lock(&trigger_data->lock);
