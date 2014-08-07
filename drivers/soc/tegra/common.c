@@ -20,11 +20,5 @@ static const struct of_device_id tegra_machine_match[] = {
 
 bool soc_is_tegra(void)
 {
-	struct device_node *root;
-
-	root = of_find_node_by_path("/");
-	if (!root)
-		return false;
-
-	return of_match_node(tegra_machine_match, root) != NULL;
+	return of_match_machine(tegra_machine_match) != NULL;
 }
