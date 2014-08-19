@@ -1954,3 +1954,7 @@
 		clock-names = "pll_a", "pll_a_out0", "mclk";
 	};
 };
+
+&cpu0 {
+	vdd-cpu-supply = <&vdd_cpu>;
+};
