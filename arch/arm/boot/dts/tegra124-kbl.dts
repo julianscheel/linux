@@ -201,6 +201,16 @@
 	};
 
 	regulators {
+		vdd_dc_in: regulator@99 {
+			compatible = "regulator-fixed";
+			reg = <99>;
+			regulator-name = "+VDD_DC_IN";
+			regulator-min-microvolt = <12000000>;
+			regulator-max-microvolt = <12000000>;
+			regulator-always-on;
+			regulator-boot-on;
+		};
+
 		vdd_5v0: regulator@100 {
 			compatible = "regulator-fixed";
 			reg = <100>;
@@ -209,6 +219,7 @@
 			regulator-max-microvolt = <5000000>;
 			regulator-always-on;
 			regulator-boot-on;
+			vin-supply = <&vdd_dc_in>;
 		};
 
 		vdd_3v3: regulator@101 {
@@ -219,6 +230,7 @@
 			regulator-max-microvolt = <3300000>;
 			regulator-always-on;
 			regulator-boot-on;
+			vin-supply = <&vdd_dc_in>;
 		};
 
 		vdd_5v0_hdmi: regulator@102 {
