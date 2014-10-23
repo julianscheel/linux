@@ -130,6 +130,18 @@
 		};
 	};
 
+	/* Serial ATA */
+	sata@0,70020000 {
+		status = "okay";
+
+		hvdd-supply = <&vdd_3v3_lp0>;
+		vddio-supply = <&vdd_1v05_run>;
+		avdd-supply = <&vdd_1v05_run>;
+
+		target-5v-supply = <&vdd_5v0_sata>;
+		target-12v-supply = <&vdd_12v0_sata>;
+	};
+
 	gpio-keys {
 		compatible = "gpio-keys";
 
@@ -278,6 +290,29 @@
 			enable-active-high;
 			gpio-open-drain;
 			vin-supply = <&vdd_5v0>;
+		};
+
+		/* Molex power connector */
+		vdd_5v0_sata: regulator@106 {
+			compatible = "regulator-fixed";
+			reg = <106>;
+			regulator-name = "+5V_SATA";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			regulator-always-on;
+			regulator-boot-on;
+			vin-supply = <&vdd_5v0_sys>;
+		};
+
+		vdd_12v0_sata: regulator@14 {
+			compatible = "regulator-fixed";
+			reg = <14>;
+			regulator-name = "+12V_SATA";
+			regulator-min-microvolt = <12000000>;
+			regulator-max-microvolt = <12000000>;
+			gpio = <&gpio TEGRA_GPIO(EE, 2) GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+			vin-supply = <&vdd_dc_in>;
 		};
 	};
 };
