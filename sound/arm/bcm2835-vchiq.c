@@ -491,7 +491,7 @@ static int bcm2835_audio_set_ctls_chan(bcm2835_alsa_stream_t * alsa_stream,
 	instance->result = -1;
 
 	m.type = VC_AUDIO_MSG_TYPE_CONTROL;
-	m.u.control.dest = chip->dest;
+	m.u.control.dest = chip->dest[alsa_stream->substream->pcm->device];
 	m.u.control.volume = chip->volume;
 
 	/* Create the message available completion */

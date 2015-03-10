@@ -67,7 +67,11 @@
 #define audio_alert(fmt, arg...)	\
 	printk(KERN_ALERT"%s:%d " fmt, __func__, __LINE__, ##arg)
 
+/* split the number of available substreams into multiple PCMs, so that
+ * they can be independently configured for outputting to HDMI/analog */
+#define SPLIT_TO_PCMS			(2)
 #define MAX_SUBSTREAMS			(8)
+#define PCM_SUBSTREAMS			(MAX_SUBSTREAMS/SPLIT_TO_PCMS)
 #define AVAIL_SUBSTREAMS_MASK		(0xff)
 enum {
 	CTRL_VOL_MUTE,
@@ -91,13 +95,12 @@ typedef enum {
 	PCM_PLAYBACK_VOLUME,
 	PCM_PLAYBACK_MUTE,
 	PCM_PLAYBACK_DEVICE,
+	PCM_PLAYBACK_DEVICE_1,
 } SND_BCM2835_CTRL_T;
 
 /* definition of the chip-specific record */
 typedef struct bcm2835_chip {
 	struct snd_card *card;
-	struct snd_pcm *pcm;
-	struct snd_pcm *pcm_spdif;
 	/* Bitmat for valid reg_base and irq numbers */
 	uint32_t avail_substreams;
 	struct platform_device *pdev[MAX_SUBSTREAMS];
@@ -105,7 +108,7 @@ typedef struct bcm2835_chip {
 
 	int volume;
 	int old_volume; /* stores the volume value whist muted */
-	int dest;
+	int dest[SPLIT_TO_PCMS];
 	int mute;
 
 	unsigned int opened;
@@ -145,8 +148,9 @@ typedef struct bcm2835_alsa_stream {
 	int idx;
 } bcm2835_alsa_stream_t;
 
+void snd_bcm_2835_chip_init(bcm2835_chip_t * chip);
 int snd_bcm2835_new_ctl(bcm2835_chip_t * chip);
-int snd_bcm2835_new_pcm(bcm2835_chip_t * chip);
+int snd_bcm2835_new_pcm(bcm2835_chip_t * chip, int device);
 int snd_bcm2835_new_spdif_pcm(bcm2835_chip_t * chip);
 
 int bcm2835_audio_open(bcm2835_alsa_stream_t * alsa_stream);

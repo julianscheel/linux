@@ -58,6 +58,11 @@ static int snd_bcm2835_ctl_info(struct snd_kcontrol *kcontrol,
 		uinfo->count = 1;
 		uinfo->value.integer.min = 0;
 		uinfo->value.integer.max = AUDIO_DEST_MAX-1;
+	} else if (kcontrol->private_value == PCM_PLAYBACK_DEVICE_1) {
+		uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
+		uinfo->count = 1;
+		uinfo->value.integer.min = 0;
+		uinfo->value.integer.max = AUDIO_DEST_MAX-1;
 	}
 	audio_info(" ... OUT\n");
 	return 0;
@@ -101,7 +106,9 @@ static int snd_bcm2835_ctl_get(struct snd_kcontrol *kcontrol,
 	else if (kcontrol->private_value == PCM_PLAYBACK_MUTE)
 		ucontrol->value.integer.value[0] = chip->mute;
 	else if (kcontrol->private_value == PCM_PLAYBACK_DEVICE)
-		ucontrol->value.integer.value[0] = chip->dest;
+		ucontrol->value.integer.value[0] = chip->dest[0];
+	else if (kcontrol->private_value == PCM_PLAYBACK_DEVICE_1)
+		ucontrol->value.integer.value[0] = chip->dest[1];
 
 	return 0;
 }
@@ -131,8 +138,13 @@ static int snd_bcm2835_ctl_put(struct snd_kcontrol *kcontrol,
 		changed = toggle_mute(chip, ucontrol->value.integer.value[0]);
 
 	} else if (kcontrol->private_value == PCM_PLAYBACK_DEVICE) {
-		if (ucontrol->value.integer.value[0] != chip->dest) {
-			chip->dest = ucontrol->value.integer.value[0];
+		if (ucontrol->value.integer.value[0] != chip->dest[0]) {
+			chip->dest[0] = ucontrol->value.integer.value[0];
+			changed = 1;
+		}
+	} else if (kcontrol->private_value == PCM_PLAYBACK_DEVICE_1) {
+		if (ucontrol->value.integer.value[0] != chip->dest[1]) {
+			chip->dest[1] = ucontrol->value.integer.value[0];
 			changed = 1;
 		}
 	}
@@ -177,6 +189,17 @@ static struct snd_kcontrol_new snd_bcm2835_ctl[] = {
 	 .index = 0,
 	 .access = SNDRV_CTL_ELEM_ACCESS_READWRITE,
 	 .private_value = PCM_PLAYBACK_DEVICE,
+	 .info = snd_bcm2835_ctl_info,
+	 .get = snd_bcm2835_ctl_get,
+	 .put = snd_bcm2835_ctl_put,
+	 .count = 1,
+	},
+	{
+	 .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+	 .name = "PCM Playback Route Device 1",
+	 .index = 0,
+	 .access = SNDRV_CTL_ELEM_ACCESS_READWRITE,
+	 .private_value = PCM_PLAYBACK_DEVICE_1,
 	 .info = snd_bcm2835_ctl_info,
 	 .get = snd_bcm2835_ctl_get,
 	 .put = snd_bcm2835_ctl_put,

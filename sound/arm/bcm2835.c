@@ -87,6 +87,7 @@ static int snd_bcm2835_alsa_probe(struct platform_device *pdev)
 	bcm2835_chip_t *chip;
 	struct snd_card *card;
 	int err;
+	int i;
 
 	if (dev >= MAX_SUBSTREAMS)
 		return -ENODEV;
@@ -115,10 +116,13 @@ static int snd_bcm2835_alsa_probe(struct platform_device *pdev)
 	}
 
 	g_chip = chip;
-	err = snd_bcm2835_new_pcm(chip);
-	if (err < 0) {
-		dev_err(&pdev->dev, "Failed to create new BCM2835 pcm device\n");
-		goto out_bcm2835_new_pcm;
+	snd_bcm_2835_chip_init(chip);
+	for (i = 0; i < SPLIT_TO_PCMS; i++) {
+		err = snd_bcm2835_new_pcm(chip, i);
+		if (err < 0) {
+			dev_err(&pdev->dev, "Failed to create new BCM2835 pcm device\n");
+			goto out_bcm2835_new_pcm;
+		}
 	}
 
 	err = snd_bcm2835_new_spdif_pcm(chip);

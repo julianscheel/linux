@@ -129,13 +129,13 @@ static int snd_bcm2835_playback_open_generic(
 
 	if (spdif && chip->opened != 0)
 		return -EBUSY;
-	else if (!spdif && (chip->opened & (1 << idx)))
+	else if (!spdif && (chip->opened & (1 << (idx + substream->pcm->device * PCM_SUBSTREAMS))))
 		return -EBUSY;
 
-	if (idx > MAX_SUBSTREAMS) {
+	if (idx > PCM_SUBSTREAMS) {
 		audio_error
 		    ("substream(%d) device doesn't exist max(%d) substreams allowed\n",
-		     idx, MAX_SUBSTREAMS);
+		     idx, PCM_SUBSTREAMS);
 		err = -ENODEV;
 		goto out;
 	}
@@ -481,29 +481,32 @@ static struct snd_pcm_ops snd_bcm2835_playback_spdif_ops = {
 	.ack = snd_bcm2835_pcm_ack,
 };
 
+void snd_bcm_2835_chip_init(bcm2835_chip_t * chip)
+{
+	mutex_init(&chip->audio_mutex);
+	chip->volume = alsa2chip(0);
+	chip->mute = CTRL_VOL_UNMUTE;	/*disable mute on startup */
+}
+
 /* create a pcm device */
-int snd_bcm2835_new_pcm(bcm2835_chip_t * chip)
+int snd_bcm2835_new_pcm(bcm2835_chip_t * chip, int device)
 {
 	struct snd_pcm *pcm;
 	int err;
 
 	audio_info(" .. IN\n");
-	mutex_init(&chip->audio_mutex);
 	if(mutex_lock_interruptible(&chip->audio_mutex))
 	{
 		audio_error("Interrupted whilst waiting for lock\n");
 		return -EINTR;
 	}
 	err =
-	    snd_pcm_new(chip->card, "bcm2835 ALSA", 0, MAX_SUBSTREAMS, 0, &pcm);
+	    snd_pcm_new(chip->card, "bcm2835 ALSA", device, PCM_SUBSTREAMS, 0, &pcm);
 	if (err < 0)
 		return err;
 	pcm->private_data = chip;
 	strcpy(pcm->name, "bcm2835 ALSA");
-	chip->pcm = pcm;
-	chip->dest = AUDIO_DEST_AUTO;
-	chip->volume = alsa2chip(0);
-	chip->mute = CTRL_VOL_UNMUTE;	/*disable mute on startup */
+	chip->dest[device] = AUDIO_DEST_AUTO;
 	/* set operators */
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK,
 			&snd_bcm2835_playback_ops);
@@ -532,13 +535,12 @@ int snd_bcm2835_new_spdif_pcm(bcm2835_chip_t * chip)
 		audio_error("Interrupted whilst waiting for lock\n");
 		return -EINTR;
 	}
-	err = snd_pcm_new(chip->card, "bcm2835 ALSA", 1, 1, 0, &pcm);
+	err = snd_pcm_new(chip->card, "bcm2835 ALSA", SPLIT_TO_PCMS, 1, 0, &pcm);
 	if (err < 0)
 		return err;
 
 	pcm->private_data = chip;
 	strcpy(pcm->name, "bcm2835 IEC958/HDMI");
-	chip->pcm_spdif = pcm;
 	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_PLAYBACK,
 			&snd_bcm2835_playback_spdif_ops);
 
